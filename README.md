@@ -4,10 +4,61 @@ This is an implementation of the Elm Architecture in Haskell.
 
 This implementation runs commands concurrently just like in Elm.
 
-Internally commands run in separate threads but if any of the threads errors,
-the error will be re-thrown in the main thread.
+Internally commands run in separate threads. If any of the threads errors, the
+error will be re-thrown in the main thread.
 
-Implementation of `runProgram` is in `src/Lib.hs`
+## Implementation
+
+```haskell
+{-# LANGUAGE NoImplicitPrelude   #-}
+{-# LANGUAGE RankNTypes          #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+
+--------------------------------------------------------------------------------
+import           Control.Concurrent       (threadDelay)
+import           Control.Concurrent.Async (Async, async, waitAny)
+--------------------------------------------------------------------------------
+
+type Cmd a = [ IO a ]
+
+
+data Config model msg =
+    Config
+    { _init   :: (model, Cmd msg)
+    , _update :: msg -> model -> (model, Cmd msg)
+    }
+
+
+runProgram :: forall model msg. Config model msg -> IO ()
+runProgram config =
+    do
+        initAsyncs <- traverse async initCmds
+        run' initAsyncs initModel
+    where
+        update' = _update config
+
+        (initModel, initCmds) = _init config
+
+        run' :: [Async msg] -> model -> IO ()
+        run' asyncs model =
+            if null asyncs then
+                print "Finished"
+            else
+                do
+                    (completedCmd, msg) <- waitAny asyncs :: IO (Async msg, msg)
+
+                    let (newModel, newCmds) = update' msg model
+
+                    newCmdsAsync <- traverse async newCmds
+
+                    let newAsyncs =
+                            filter (/= completedCmd)    -- Remove the cmd that we just ran
+                            asyncs ++ newCmdsAsync   -- Let's add what our update returned
+
+                    run' newAsyncs newModel
+```
+
+## Example Program
 
 ```haskell
 -- Program output :
