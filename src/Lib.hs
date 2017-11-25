@@ -115,6 +115,9 @@ runProgram config =
                 print "Finished"
             else
                 do
+                    -- This works like a pool of async commands with a queue
+                    -- in the end. The first command to be resolved is the first
+                    -- command dealt with.
                     (completedCmd, msg) <- waitAny asyncs :: IO (Async msg, msg)
 
                     let (newModel, newCmds) = update' msg model

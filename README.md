@@ -45,6 +45,9 @@ runProgram config =
                 print "Finished"
             else
                 do
+                    -- This works like a pool of async commands with a queue
+                    -- in the end. The first command to be resolved is the first
+                    -- command dealt with.
                     (completedCmd, msg) <- waitAny asyncs :: IO (Async msg, msg)
 
                     let (newModel, newCmds) = update' msg model
@@ -52,7 +55,7 @@ runProgram config =
                     newCmdsAsync <- traverse async newCmds
 
                     let newAsyncs =
-                            filter (/= completedCmd)    -- Remove the cmd that we just ran
+                            filter (/= completedCmd) -- Remove the cmd that we just ran
                             asyncs ++ newCmdsAsync   -- Let's add what our update returned
 
                     run' newAsyncs newModel
