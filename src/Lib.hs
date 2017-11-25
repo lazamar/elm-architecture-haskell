@@ -42,9 +42,6 @@ data Msg
     | WaitAndSetModel Int Int
 
 
-type Cmd a = [ IO a ]
-
-
 -- ===================
 -- UPDATE
 -- ===================
@@ -88,8 +85,11 @@ cmdIO io = io >> return DoNothing
 
 
 -- ===================
--- PROGRAM RUNNER
+-- INTERNALS
 -- ===================
+
+
+type Cmd a = [ IO a ]
 
 
 data Config model msg =
