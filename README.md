@@ -2,7 +2,7 @@
 
 This is an implementation of the Elm Architecture in Haskell.
 
-This implementation runs commands concurrently just like in Elm.
+This implementation runs commands in parallel just like in Elm.
 
 Internally commands run in separate threads. If any of the threads errors, the
 error will be re-thrown in the main thread.
