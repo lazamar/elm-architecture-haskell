@@ -19,6 +19,7 @@ source-repository head
 library
     exposed-modules:
         Lib
+        ElmArchitecture
     build-depends:
         base >=4.7 && <5,
         async -any

@@ -6,7 +6,8 @@ module Lib ( main ) where
 
 --------------------------------------------------------------------------------
 import           Control.Concurrent       (threadDelay)
-import           Control.Concurrent.Async (Async, async, waitAny)
+import qualified ElmArchitecture 
+import ElmArchitecture (Config(_init, _update, Config), Cmd)
 import           Prelude                  hiding (init)
 --------------------------------------------------------------------------------
 
@@ -21,7 +22,7 @@ import           Prelude                  hiding (init)
 
 main :: IO ()
 main =
-    runProgram Config
+    ElmArchitecture.run Config
         { _init = init
         , _update = update
         }
@@ -53,7 +54,7 @@ init =
     ,   [ return $ WaitAndSetModel 2 2 -- waits 2 seconds and sets model value to 2
         , return $ WaitAndSetModel 5 5
         , return $ WaitAndSetModel 3 3
-        , cmdIO $ putStrLn "Program started"
+        , doNothingOn $ putStrLn "Program started"
         ]
     )
 
@@ -69,7 +70,7 @@ update msg model =
                 newModel = Model newVal
                 msgToPrint = "New model value: " ++ show model
             in
-                (newModel, return $ cmdIO $ putStrLn msgToPrint)
+                (newModel, return $ doNothingOn $ putStrLn msgToPrint)
 
         WaitAndSetModel secs val ->
             let
@@ -80,52 +81,6 @@ update msg model =
                 (model, [cmd])
 
 
-cmdIO :: IO a -> IO Msg
-cmdIO io = io >> return DoNothing
+doNothingOn :: IO a -> IO Msg
+doNothingOn io = io >> return DoNothing
 
-
--- ===================
--- INTERNALS
--- ===================
-
-
-type Cmd a = [ IO a ]
-
-
-data Config model msg =
-    Config
-    { _init   :: (model, Cmd msg)
-    , _update :: msg -> model -> (model, Cmd msg)
-    }
-
-
-runProgram :: forall model msg. Config model msg -> IO ()
-runProgram config =
-    do
-        initAsyncs <- traverse async initCmds
-        run' initAsyncs initModel
-    where
-        update' = _update config
-
-        (initModel, initCmds) = _init config
-
-        run' :: [Async msg] -> model -> IO ()
-        run' asyncs model =
-            if null asyncs then
-                print "Finished"
-            else
-                do
-                    -- This works like a pool of async commands with a queue
-                    -- in the end. The first command to be resolved is the first
-                    -- command dealt with.
-                    (completedCmd, msg) <- waitAny asyncs :: IO (Async msg, msg)
-
-                    let (newModel, newCmds) = update' msg model
-
-                    newCmdsAsync <- traverse async newCmds
-
-                    let newAsyncs =
-                            filter (/= completedCmd)    -- Remove the cmd that we just ran
-                            asyncs ++ newCmdsAsync   -- Let's add what our update returned
-
-                    run' newAsyncs newModel
