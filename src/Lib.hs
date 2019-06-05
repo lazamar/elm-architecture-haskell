@@ -1,13 +1,12 @@
-{-# LANGUAGE NoImplicitPrelude   #-}
-{-# LANGUAGE RankNTypes          #-}
-{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE NoImplicitPrelude #-}
 
 module Lib ( main ) where
 
-import Control.Concurrent       (threadDelay)
+import Control.Concurrent (threadDelay)
 import qualified ElmArchitecture 
 import ElmArchitecture (Config(_init, _update, Config), Cmd)
 import Prelude hiding (init)
+
 
 main :: IO ()
 main =
@@ -15,6 +14,7 @@ main =
         { _init = init
         , _update = update
         }
+
 
 -- Our application's state
 newtype Model = Model String
@@ -26,9 +26,7 @@ data Msg
     | SetModelValue String
 
 
--- ===================
 -- State handling
--- ===================
 
 
 init :: (Model, Cmd Msg)
@@ -66,7 +64,6 @@ ignoreResult :: IO a -> IO Msg
 ignoreResult io = io >> return DoNothing
 
 
-
 -- Simulate HTTP requests
 httpGet :: String -> IO String
 httpGet url =
@@ -79,6 +76,7 @@ httpGet url =
 
         _ ->
             waitFor 2 "404"
+
 
 -- Return a value after a few seconds
 waitFor :: Int -> a -> IO a
