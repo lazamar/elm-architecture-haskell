@@ -17,13 +17,16 @@ main =
 
 
 -- Our application's state
-newtype Model = Model String
+data Model = Model
+    { counter :: Int
+    , content :: String
+    }
     deriving (Show)
 
 
 data Msg
     = DoNothing
-    | SetModelValue String
+    | SetContent String
 
 
 -- State handling
@@ -31,15 +34,15 @@ data Msg
 
 init :: (Model, Cmd Msg)
 init =
-    (Model "Empty"
+    (Model { counter = 0, content = "No content" } 
         -- Immediate IO action
     ,   [ ignoreResult $ putStrLn "Program started"  
         -- Non-blocking IO, wait for user input
-        , SetModelValue <$> getLine 
+        , SetContent <$> getLine 
         -- Async tasks
-        , SetModelValue <$> waitFor 2 "Two" -- waits 2 seconds and sets model value to "Two"
-        , SetModelValue <$> httpGet "https://hackage.haskell.org"
-        , SetModelValue <$> httpGet "https://elm-lang.org"
+        , SetContent <$> waitFor 2 "Two" -- waits 2 seconds and sets model value to "Two"
+        , SetContent <$> httpGet "https://hackage.haskell.org"
+        , SetContent <$> httpGet "https://elm-lang.org"
         ]
     )
 
@@ -53,9 +56,10 @@ update msg model =
         DoNothing ->
             (model, [])
 
-        SetModelValue newVal ->
+        SetContent newContent ->
             let
-                newModel = Model newVal
+                newModel = model { content = newContent }
+
                 msgToPrint = "New model value: " ++ show newModel
             in
                 ( newModel
