@@ -44,6 +44,9 @@ init =
     )
 
 
+-- Here is where our main aplication logic goes.
+-- Here we can react to events that happen in our program
+-- and schedule IO actions without blocking the main thread.
 update :: Msg -> Model -> (Model, Cmd Msg)
 update msg model =
     case msg of
