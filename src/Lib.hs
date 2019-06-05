@@ -9,16 +9,12 @@ import           Control.Concurrent       (threadDelay)
 import qualified ElmArchitecture 
 import ElmArchitecture (Config(_init, _update, Config), Cmd)
 import           Prelude                  hiding (init)
+import Debug.Trace (trace)
 --------------------------------------------------------------------------------
 
 -- ===================
 -- MAIN
 -- ===================
--- Program output :
---     Program started
---     New model value: Model 0
---     New model value: Model 2
---     New model value: Model 3
 
 main :: IO ()
 main =
@@ -33,28 +29,32 @@ main =
 -- ===================
 
 
-newtype Model = Model Int
+-- Our application's state
+newtype Model = Model String
     deriving (Show)
 
 
 data Msg
     = DoNothing
-    | SetModelValue Int
-    | WaitAndSetModel Int Int
+    | SetModelValue String
 
 
 -- ===================
--- UPDATE
+-- State handling
 -- ===================
 
 
 init :: (Model, Cmd Msg)
 init =
-    (Model 0
-    ,   [ return $ WaitAndSetModel 2 2 -- waits 2 seconds and sets model value to 2
-        , return $ WaitAndSetModel 5 5
-        , return $ WaitAndSetModel 3 3
-        , doNothingOn $ putStrLn "Program started"
+    (Model "Empty"
+        -- Immediate IO action
+    ,   [ ignoreResult $ putStrLn "Program started"  
+        -- Non-blocking IO, wait for user input
+        , SetModelValue <$> getLine 
+        -- Async tasks
+        , SetModelValue <$> waitFor 2 "Two" -- waits 2 seconds and sets model value to "Two"
+        , SetModelValue <$> waitFor 5 "Five"
+        , SetModelValue <$> waitFor 3 "Three"
         ]
     )
 
@@ -68,19 +68,18 @@ update msg model =
         SetModelValue newVal ->
             let
                 newModel = Model newVal
-                msgToPrint = "New model value: " ++ show model
+                msgToPrint = "New model value: " ++ show newModel
             in
-                (newModel, return $ doNothingOn $ putStrLn msgToPrint)
-
-        WaitAndSetModel secs val ->
-            let
-                cmd = do
-                    threadDelay $ secs * 1000000
-                    return $ SetModelValue val
-            in
-                (model, [cmd])
+                ( newModel
+                , [ ignoreResult $ putStrLn msgToPrint ]
+                )
 
 
-doNothingOn :: IO a -> IO Msg
-doNothingOn io = io >> return DoNothing
+ignoreResult :: IO a -> IO Msg
+ignoreResult io = io >> return DoNothing
 
+
+waitFor :: Int -> a -> IO a
+waitFor seconds val = do
+    threadDelay $ seconds * 1000000
+    return val
