@@ -48,6 +48,7 @@ data Model = Model
     deriving (Show)
 
 
+-- The events we will handle
 data Msg
     = DoNothing
     | SetContent String
