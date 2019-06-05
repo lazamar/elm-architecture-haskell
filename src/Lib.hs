@@ -27,6 +27,7 @@ data Model = Model
 data Msg
     = DoNothing
     | SetContent String
+    | DecreaseCounter
 
 
 -- State handling
@@ -34,7 +35,7 @@ data Msg
 
 init :: (Model, Cmd Msg)
 init =
-    (Model { counter = 0, content = "No content" } 
+    (Model { counter = 10, content = "No content" } 
         -- Immediate IO action
     ,   [ ignoreResult $ putStrLn "Program started"  
         -- Non-blocking IO, wait for user input
@@ -43,6 +44,7 @@ init =
         , SetContent <$> waitFor 2 "Two" -- waits 2 seconds and sets model value to "Two"
         , SetContent <$> httpGet "https://hackage.haskell.org"
         , SetContent <$> httpGet "https://elm-lang.org"
+        , return DecreaseCounter
         ]
     )
 
@@ -56,15 +58,20 @@ update msg model =
         DoNothing ->
             (model, [])
 
-        SetContent newContent ->
-            let
-                newModel = model { content = newContent }
-
-                msgToPrint = "New model value: " ++ show newModel
-            in
-                ( newModel
-                , [ ignoreResult $ putStrLn msgToPrint ]
+        DecreaseCounter ->
+            if counter model == 0 then 
+                (model, [])
+            else 
+                (model { counter = counter model - 1 }
+                ,   [ waitFor 1 DecreaseCounter 
+                    , ignoreResult $ putStrLn $ show model 
+                    ]
                 )
+
+        SetContent newContent ->
+            ( model { content = newContent }
+            , []
+            )
 
 
 ignoreResult :: IO a -> IO Msg

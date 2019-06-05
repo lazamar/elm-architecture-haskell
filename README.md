@@ -19,6 +19,8 @@ This example will does some synchronous and asynchronous IO as well as getting u
 
 It illustrates how the Elm Architecture can help with the organisation of state updates in a multi-threaded application.
 
+The example updates a counter in the state every second while also updating the state on IO events. 
+
 ```haskell
 {-# LANGUAGE NoImplicitPrelude #-}
 
@@ -39,13 +41,17 @@ main =
 
 
 -- Our application's state
-newtype Model = Model String
+data Model = Model
+    { counter :: Int
+    , content :: String
+    }
     deriving (Show)
 
 
 data Msg
     = DoNothing
-    | SetModelValue String
+    | SetContent String
+    | DecreaseCounter
 
 
 -- State handling
@@ -53,15 +59,16 @@ data Msg
 
 init :: (Model, Cmd Msg)
 init =
-    (Model "Empty"
+    (Model { counter = 10, content = "No content" } 
         -- Immediate IO action
     ,   [ ignoreResult $ putStrLn "Program started"  
         -- Non-blocking IO, wait for user input
-        , SetModelValue <$> getLine 
+        , SetContent <$> getLine 
         -- Async tasks
-        , SetModelValue <$> waitFor 2 "Two" -- waits 2 seconds and sets model value to "Two"
-        , SetModelValue <$> httpGet "https://hackage.haskell.org"
-        , SetModelValue <$> httpGet "https://elm-lang.org"
+        , SetContent <$> waitFor 2 "Two" -- waits 2 seconds and sets model value to "Two"
+        , SetContent <$> httpGet "https://hackage.haskell.org"
+        , SetContent <$> httpGet "https://elm-lang.org"
+        , return DecreaseCounter
         ]
     )
 
@@ -75,14 +82,20 @@ update msg model =
         DoNothing ->
             (model, [])
 
-        SetModelValue newVal ->
-            let
-                newModel = Model newVal
-                msgToPrint = "New model value: " ++ show newModel
-            in
-                ( newModel
-                , [ ignoreResult $ putStrLn msgToPrint ]
+        DecreaseCounter ->
+            if counter model == 0 then 
+                (model, [])
+            else 
+                (model { counter = counter model - 1 }
+                ,   [ waitFor 1 DecreaseCounter 
+                    , ignoreResult $ putStrLn $ show model 
+                    ]
                 )
+
+        SetContent newContent ->
+            ( model { content = newContent }
+            , []
+            )
 
 
 ignoreResult :: IO a -> IO Msg
