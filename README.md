@@ -15,7 +15,9 @@ error will be re-thrown in the main thread.
 
 ## Example Program
 
-This example will does some synchronous and asynchronous IO as well as getting user input without blocking the main thread. It illustrates how the Elm Architecture can help with the organisation of a stateful multi-threaded application.
+This example will does some synchronous and asynchronous IO as well as getting user input without blocking the main thread. 
+
+It illustrates how the Elm Architecture can help with the organisation of state updates in a multi-threaded application.
 
 ```haskell
 {-# LANGUAGE NoImplicitPrelude #-}
