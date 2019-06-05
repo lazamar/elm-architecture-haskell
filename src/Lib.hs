@@ -4,17 +4,10 @@
 
 module Lib ( main ) where
 
---------------------------------------------------------------------------------
-import           Control.Concurrent       (threadDelay)
+import Control.Concurrent       (threadDelay)
 import qualified ElmArchitecture 
 import ElmArchitecture (Config(_init, _update, Config), Cmd)
-import           Prelude                  hiding (init)
-import Debug.Trace (trace)
---------------------------------------------------------------------------------
-
--- ===================
--- MAIN
--- ===================
+import Prelude hiding (init)
 
 main :: IO ()
 main =
@@ -22,12 +15,6 @@ main =
         { _init = init
         , _update = update
         }
-
-
--- ===================
--- TYPES
--- ===================
-
 
 -- Our application's state
 newtype Model = Model String
@@ -53,8 +40,8 @@ init =
         , SetModelValue <$> getLine 
         -- Async tasks
         , SetModelValue <$> waitFor 2 "Two" -- waits 2 seconds and sets model value to "Two"
-        , SetModelValue <$> waitFor 5 "Five"
-        , SetModelValue <$> waitFor 3 "Three"
+        , SetModelValue <$> httpGet "https://hackage.haskell.org"
+        , SetModelValue <$> httpGet "https://elm-lang.org"
         ]
     )
 
@@ -79,6 +66,21 @@ ignoreResult :: IO a -> IO Msg
 ignoreResult io = io >> return DoNothing
 
 
+
+-- Simulate HTTP requests
+httpGet :: String -> IO String
+httpGet url =
+    case url of
+        "https://hackage.haskell.org" ->
+            waitFor 3 "Hackage website content"
+
+        "https://elm-lang.org" ->
+            waitFor 4 "Elm website content"
+
+        _ ->
+            waitFor 2 "404"
+
+-- Return a value after a few seconds
 waitFor :: Int -> a -> IO a
 waitFor seconds val = do
     threadDelay $ seconds * 1000000
