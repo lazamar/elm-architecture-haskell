@@ -1,0 +1,89 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.31.2.
+--
+-- see: https://github.com/sol/hpack
+--
+-- hash: bcb42abc1708df9bd17909f0af1178c8b8eda432b0bfdd0b4475356db02770e3
+
+name:           elm-architecture-talk
+version:        0.1.0.0
+description:    Please see the README on GitHub at <https://github.com/githubuser/elm-architecture-talk#readme>
+homepage:       https://github.com/githubuser/elm-architecture-talk#readme
+bug-reports:    https://github.com/githubuser/elm-architecture-talk/issues
+author:         Author name here
+maintainer:     example@example.com
+copyright:      2019 Author name here
+license:        BSD3
+build-type:     Simple
+extra-source-files:
+    README.md
+    ChangeLog.md
+
+source-repository head
+  type: git
+  location: https://github.com/githubuser/elm-architecture-talk
+
+library
+  exposed-modules:
+      ElmArchitecture
+      WebCrawler
+  other-modules:
+      Paths_elm_architecture_talk
+  hs-source-dirs:
+      src
+  build-depends:
+      ansi-terminal
+    , async
+    , attoparsec
+    , base >=4.7 && <5
+    , bytestring
+    , containers
+    , http-client
+    , http-client-tls
+    , http-types
+    , text
+  default-language: Haskell2010
+
+executable elm-architecture-talk-exe
+  main-is: Main.hs
+  other-modules:
+      Paths_elm_architecture_talk
+  hs-source-dirs:
+      app
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      ansi-terminal
+    , async
+    , attoparsec
+    , base >=4.7 && <5
+    , bytestring
+    , containers
+    , elm-architecture-talk
+    , http-client
+    , http-client-tls
+    , http-types
+    , text
+  default-language: Haskell2010
+
+test-suite elm-architecture-talk-test
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  other-modules:
+      Paths_elm_architecture_talk
+  hs-source-dirs:
+      test
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      ansi-terminal
+    , async
+    , attoparsec
+    , base >=4.7 && <5
+    , bytestring
+    , containers
+    , elm-architecture-talk
+    , http-client
+    , http-client-tls
+    , http-types
+    , text
+  default-language: Haskell2010
